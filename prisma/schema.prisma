@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ImpactType {
+  positive
+  negative
+}
+
+enum DoughnutDomain {
+  social_foundation
+  ecological_ceiling
+}
+
+enum ReviewStatus {
+  pending
+  accepted
+  rejected
+}
+
+enum ExtractionJobStatus {
+  queued
+  processing
+  completed
+  failed
+}
+
+model Company {
+  id           String      @id @default(cuid())
+  name         String      @unique
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  impacts      Impact[]
+  extractionJobs ExtractionJob[]
+}
+
+model ImpactDimension {
+  id          String         @id @default(cuid())
+  key         String         @unique
+  name        String
+  domain      DoughnutDomain
+  createdAt   DateTime       @default(now())
+  impacts     Impact[]
+}
+
+model Impact {
+  id            String          @id @default(cuid())
+  companyId     String
+  dimensionId   String
+  impactType    ImpactType
+  title         String
+  description   String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  company       Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  dimension     ImpactDimension @relation(fields: [dimensionId], references: [id])
+  events        ImpactEvent[]
+  sources       EvidenceSource[]
+  reviewDecisions ReviewDecision[]
+
+  @@index([companyId])
+  @@index([dimensionId])
+}
+
+model ImpactEvent {
+  id           String   @id @default(cuid())
+  impactId     String
+  observedAt   DateTime
+  score        Int
+  createdAt    DateTime @default(now())
+
+  impact       Impact   @relation(fields: [impactId], references: [id], onDelete: Cascade)
+
+  @@index([impactId, observedAt])
+}
+
+model EvidenceSource {
+  id           String   @id @default(cuid())
+  impactId      String
+  type          String
+  sourceText    String?
+  fileId        String?
+  url           String?
+  createdAt     DateTime @default(now())
+
+  impact        Impact    @relation(fields: [impactId], references: [id], onDelete: Cascade)
+
+  @@index([impactId])
+}
+
+model ExtractionJob {
+  id             String              @id @default(cuid())
+  companyId      String
+  sourceText     String?
+  fileId         String?
+  status         ExtractionJobStatus @default(queued)
+  error          String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  company        Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  candidates     ExtractionCandidate[]
+
+  @@index([companyId, createdAt])
+}
+
+model ExtractionCandidate {
+  id               String          @id @default(cuid())
+  extractionJobId  String
+  title            String
+  description      String
+  dimensionKey     String
+  impactType       ImpactType
+  score            Int
+  observedAt       DateTime
+  confidence       Float
+  status           ReviewStatus    @default(pending)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  extractionJob    ExtractionJob   @relation(fields: [extractionJobId], references: [id], onDelete: Cascade)
+  reviewDecisions  ReviewDecision[]
+
+  @@index([extractionJobId, status])
+}
+
+model ReviewDecision {
+  id                    String          @id @default(cuid())
+  candidateId           String
+  impactId              String?
+  status                ReviewStatus
+  reviewerId            String?
+  editedTitle           String?
+  editedDescription     String?
+  editedDimensionKey    String?
+  editedImpactType      ImpactType?
+  editedScore           Int?
+  editedObservedAt      DateTime?
+  createdAt             DateTime        @default(now())
+
+  candidate             ExtractionCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  impact                Impact?             @relation(fields: [impactId], references: [id])
+
+  @@index([candidateId])
+}
