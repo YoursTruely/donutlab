@@ -45,7 +45,7 @@ export function parseDatasetCsv(csvText: string): ParsedDataset {
   const headers = parseCsvLine(header).map((h) => h.replace(/^"|"$/g, "").trim());
 
   const axisIdx = headers.findIndex((h) => /axis/i.test(h));
-  const boundaryIdx = headers.findIndex((h) => /boundary/i.test(h));
+  const boundaryIdx = headers.findIndex((h) => /nature of impact|boundary/i.test(h));
   const impactAttrIdx = headers.findIndex((h) => /impact attribute/i.test(h));
   const percentChangeIdx = headers.findIndex((h) => /percent change/i.test(h));
   const normalizedIdx = headers.findIndex((h) => /normalized/i.test(h));

@@ -19,6 +19,7 @@ export interface ImpactPoint {
   normalizedScore: number;
   value?: number;
   boundary?: string;
+  percentChange?: number;
 }
 
 function formatDimensionLabel(value: string): string[] {
@@ -95,8 +96,8 @@ function computeImpactPositions(
       const outerEdge = socialSeg.outerRadius;
       const bandWidth = outerEdge - innerEdge;
       points.forEach((p, i) => {
-        const shortfall = Math.max(0, Math.min(100, p.normalizedScore));
-        let rPct = outerEdge - (shortfall / 100) * bandWidth;
+        const score = Math.max(0, Math.min(100, p.normalizedScore));
+        let rPct = innerEdge + (score / 100) * bandWidth;
         if (n > 1) {
           const spread = ((i / (n - 1)) - 0.5) * bandWidth * 0.12;
           rPct = Math.max(innerEdge, Math.min(outerEdge, rPct + spread));
@@ -145,6 +146,10 @@ export function DoughnutChart({
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; text: string } | null>(null);
+  const [segmentModal, setSegmentModal] = useState<{
+    dimensionKey: string;
+    dimensionName: string;
+  } | null>(null);
   const [size, setSize] = useState({ width: 600, height });
 
   useEffect(() => {
@@ -167,7 +172,7 @@ export function DoughnutChart({
     const width = size.width;
     const h = size.height;
     const center: [number, number] = [width / 2, h / 2];
-    const maxR = Math.min(width, h) * 0.46;
+    const maxR = Math.min(width, h) * 0.40;
     const scale = (pct: number) => (pct / 100) * maxR;
 
     d3.select(svg).selectAll("*").remove();
@@ -262,10 +267,15 @@ export function DoughnutChart({
         .style("stroke", "#003366")
         .style("stroke-width", "2.5px")
         .style("stroke-linejoin", "round")
-        .style("stroke-linecap", "round");
+        .style("stroke-linecap", "round")
+        .style("cursor", "pointer")
+        .on("click", function (_event, d) {
+          const key = (d.data as { key?: string }).key;
+          if (key) setSegmentModal({ dimensionKey: key, dimensionName: d.data.name });
+        });
       if (showLabels) {
         // Keep labels inside the chart radius to avoid viewBox clipping.
-        const labelRadius = labelOutside ? Math.min(outerPct + 6, 98) : Math.max(innerPct + 2, outerPct - 6);
+        const labelRadius = labelOutside ? Math.min(outerPct + 4, 94) : Math.max(innerPct + 2, outerPct - 6);
         const labelArc = d3
           .arc<d3.PieArcDatum<{ name: string; value: number; fill: string }>>()
           .innerRadius(scale(labelRadius))
@@ -300,7 +310,7 @@ export function DoughnutChart({
               : // Default: along the ring radius with arc-length-based truncation.
                 `rotate(${rot}) translate(${labelRadiusPx},0)${flip ? " rotate(180)" : ""}`;
 
-            const rawLines = formatDimensionLabel(d.data.name.toLowerCase());
+            const rawLines = formatDimensionLabel(d.data.name).map((line) => line.toUpperCase());
             const L = arcLength(d);
             const lines = isInnerSocialRing
               ? rawLines
@@ -395,7 +405,7 @@ export function DoughnutChart({
     renderRing([{ name: "", value: 1, fill: "#78BD43" }], 48, 66, false, false);
     // Dark green transition band
     renderRing([{ name: "", value: 1, fill: "#1D6B41" }], 66, 72, false, false);
-    renderRing(ecologicalData, 72, 92, true, true, 10);
+    renderRing(ecologicalData, 72, 92, true, true, 12);
 
     // Ecological overshoot shading (outside the ceiling ring, 92–100% radius).
     renderOvershoot(ecologicalOvershootValues, 92, 100);
@@ -438,24 +448,33 @@ export function DoughnutChart({
         .style("cursor", "pointer")
         .on("mouseover", function (event) {
           const lines: string[] = [
-            impact.impactAttribute,
-            impact.boundary ? `Boundary: ${impact.boundary}` : null,
+            impact.boundary != null && impact.boundary !== "" ? `Boundary: ${impact.boundary}` : null,
+            `Impact Attribute: ${impact.impactAttribute}`,
+            impact.boundary != null && impact.boundary !== "" ? `Nature of Impact: ${impact.boundary}` : null,
             `Normalized score: ${impact.normalizedScore}`,
-            impact.value != null ? `Value: ${impact.value}` : null
+            impact.value != null ? `Value: ${impact.value}` : null,
+            impact.percentChange != null ? `Percentage change: ${impact.percentChange}` : null
           ].filter(Boolean) as string[];
-          setTooltip({
-            x: event.pageX,
-            y: event.pageY,
-            text: lines.join("\n")
-          });
+          const e = event as MouseEvent;
+          setTooltip({ x: e.clientX, y: e.clientY, text: lines.join("\n") });
+          const updatePos = (ev: MouseEvent) =>
+            setTooltip((prev) => prev && { ...prev, x: ev.clientX, y: ev.clientY });
+          d3.select(this).on("mousemove.tooltip", updatePos);
         })
-        .on("mouseout", () => setTooltip(null));
+        .on("mouseout", function () {
+          d3.select(this).on("mousemove.tooltip", null);
+          setTooltip(null);
+        });
     });
 
     return () => {
       setTooltip(null);
     };
   }, [dimensions, impactPoints, size]);
+
+  const segmentImpacts = segmentModal
+    ? impactPoints.filter((p) => p.dimensionKey === segmentModal.dimensionKey)
+    : [];
 
   return (
     <div ref={containerRef} className="relative w-full" style={{ minHeight: height }}>
@@ -474,6 +493,80 @@ export function DoughnutChart({
           {tooltip.text.split("\n").map((line, i) => (
             <div key={i}>{line}</div>
           ))}
+        </div>
+      )}
+
+      {segmentModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setSegmentModal(null)}
+          onKeyDown={(e) => e.key === "Escape" && setSegmentModal(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="segment-modal-title"
+        >
+          <div
+            className="max-h-[85vh] w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="border-b border-emerald-200 bg-emerald-50 px-4 py-3">
+              <h2 id="segment-modal-title" className="text-lg font-semibold text-emerald-900">
+                {segmentModal.dimensionName}
+              </h2>
+              <p className="mt-0.5 text-sm text-emerald-700">
+                {segmentImpacts.length} impact{segmentImpacts.length !== 1 ? "s" : ""} in this segment
+              </p>
+            </div>
+            <div className="max-h-[60vh] overflow-y-auto p-4">
+              {segmentImpacts.length === 0 ? (
+                <p className="text-sm text-zinc-500">No impact attributes in this segment.</p>
+              ) : (
+                <ul className="space-y-4">
+                  {segmentImpacts.map((imp, idx) => (
+                    <li
+                      key={`${imp.impactAttribute}-${idx}`}
+                      className="rounded-lg border border-emerald-100 bg-emerald-50/50 p-4"
+                    >
+                      <p className="font-medium text-emerald-950">{imp.impactAttribute}</p>
+                      <dl className="mt-3 grid gap-1.5 text-sm">
+                        {imp.boundary != null && imp.boundary !== "" && (
+                          <>
+                            <dt className="text-emerald-700">Boundary</dt>
+                            <dd className="text-zinc-800">{imp.boundary}</dd>
+                          </>
+                        )}
+                        <dt className="text-emerald-700">Nature of impact</dt>
+                        <dd className="text-zinc-800">{imp.boundary ?? "—"}</dd>
+                        <dt className="text-emerald-700">Normalized score</dt>
+                        <dd className="text-zinc-800">{imp.normalizedScore}</dd>
+                        {imp.value != null && (
+                          <>
+                            <dt className="text-emerald-700">Value</dt>
+                            <dd className="text-zinc-800">{imp.value}</dd>
+                          </>
+                        )}
+                        {imp.percentChange != null && (
+                          <>
+                            <dt className="text-emerald-700">Percentage change</dt>
+                            <dd className="text-zinc-800">{imp.percentChange}</dd>
+                          </>
+                        )}
+                      </dl>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="border-t border-emerald-200 bg-emerald-50/80 px-4 py-3">
+              <button
+                type="button"
+                onClick={() => setSegmentModal(null)}
+                className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

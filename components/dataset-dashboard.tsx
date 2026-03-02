@@ -46,7 +46,8 @@ export function DatasetDashboard() {
         impactAttribute: imp.impactAttribute,
         normalizedScore: imp.normalizedScore,
         value: imp.yearValues[year],
-        boundary: imp.boundary
+        boundary: imp.boundary,
+        percentChange: imp.percentChange
       }));
   }, [parsed, year]);
 
@@ -160,7 +161,7 @@ export function DatasetDashboard() {
 
       {csvText && (!parsed?.impacts?.length || impactPoints.length === 0) && !parseError && (
         <p className="mt-4 text-sm text-amber-700">
-          No impact attributes could be mapped to chart dimensions. Check that your CSV has Axis, Boundary, and Impact Attribute columns.
+          No impact attributes could be mapped to chart dimensions. Check that your CSV has Axis, Nature of impact (or Boundary), and Impact Attribute columns.
         </p>
       )}
     </main>
