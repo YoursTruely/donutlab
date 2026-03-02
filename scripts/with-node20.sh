@@ -1,19 +1,18 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -e
+set -u
+set -o pipefail
 
 export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
-if [[ ! -s "$NVM_DIR/nvm.sh" ]]; then
-  echo "nvm was not found at $NVM_DIR. Install nvm first." >&2
-  exit 1
+if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+  # nvm (Unix) found - use it to switch to Node 20
+  unset PREFIX
+  unset NPM_CONFIG_PREFIX
+  unset npm_config_prefix
+  # shellcheck disable=SC1090
+  source "$NVM_DIR/nvm.sh"
+  nvm use 20 >/dev/null
 fi
-
-# npm can inject PREFIX and break nvm runtime switching.
-unset PREFIX
-unset NPM_CONFIG_PREFIX
-unset npm_config_prefix
-
-# shellcheck disable=SC1090
-source "$NVM_DIR/nvm.sh"
-nvm use 20 >/dev/null
+# If nvm not found (e.g. Windows with nvm-windows or direct Node install), use current Node
 
 exec "$@"

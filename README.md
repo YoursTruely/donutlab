@@ -8,7 +8,7 @@ TypeScript full-stack app for mapping business impacts to Doughnut dimensions, s
 - Prisma + Postgres (Supabase local/hosted)
 - Zod validation
 - React Hook Form + TanStack Query
-- ECharts via `echarts-for-react`
+- D3 for chart visualizations (doughnut, trends)
 - Inngest for background extraction jobs
 - OpenAI API for AI-assisted extraction
 

@@ -1,0 +1,26 @@
+Axis,Boundary,Impact Attribute,2022,2026,Percent Change,Normalized Score
+Ecological Ceiling,Chemical Pollution,Semiconductor Production,"50,000","10,500,000",20900,79.4
+Ecological Ceiling,Air Pollution,Hardware Supply Chain,"25,000","4,800,000",19100,78.4
+Ecological Ceiling,Biodiversity Loss,Mineral Extraction for GPUs,5,950,18900,78.3
+Ecological Ceiling,Ocean Acidification,Cloud Infrastructure Supply Chain,"8,000","1,400,000",17400,77.3
+Ecological Ceiling,Climate Change,Scope 2 Emissions,"15,000","2,100,000",13900,74.8
+Ecological Ceiling,Freshwater,Data Center Cooling Water Use,15,"1,100",7233.3,67.2
+Ecological Ceiling,Climate Change,Training & Inference Energy Use,50,"3,500",6900,66.7
+Ecological Ceiling,Climate Change,Data Center Expansion,0.2,10,4900,62.8
+Ecological Ceiling,Ozone Layer,Cooling Systems (% of Fleet),12,82,583.3,38.3
+Ecological Ceiling,Air Pollution,Grid Mix (% Non-Renewable),58,38,-34.5,-6.1
+Social Foundation,Income & Work,Entrepreneurial Enablement,"8,000","10,000,000",124900,100
+Social Foundation,Energy,AI for Energy Optimization,2,230,11400,72.5
+Social Foundation,Water,AI for Resource Management,2,230,11400,72.5
+Social Foundation,Political Voice,Political Content Safeguards,1.2,88,7233.3,67.2
+Social Foundation,Networks,API Ecosystem Dependence,100,"4,500",4400,61.5
+Social Foundation,Gender Equality,Bias Mitigation Investment,12,450,3650,59.4
+Social Foundation,Health,Medical Research Acceleration,3,92,2966.7,57
+Social Foundation,Peace & Justice,Safety & Alignment Staffing,40,750,1775,51.1
+Social Foundation,Education,AI as Learning Tool,50,910,1720,50.7
+Social Foundation,Education,Academic Partnerships,22,210,854.5,42.7
+Social Foundation,Income & Work,Automation of Cognitive Tasks,5,33,560,37.8
+Social Foundation,Education,Free vs Paid Access Ratio (% Paid),2,12,500,36.5
+Social Foundation,Social Equity,Digital Divide,5,24,380,33.4
+Social Foundation,Income & Work,Workforce Structure (CEO to Median),4,12,200,26
+Social Foundation,Social Equity,Geographic Access Distribution,161,193,19.9,0
