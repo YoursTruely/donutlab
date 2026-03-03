@@ -4,13 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "bash ./scripts/with-node20.sh npx next dev",
-    "build": "bash ./scripts/with-node20.sh npx next build",
+    "build": "bash ./scripts/with-node20.sh npx prisma generate && bash ./scripts/with-node20.sh npx next build",
     "start": "bash ./scripts/with-node20.sh npx next start",
     "lint": "bash ./scripts/with-node20.sh npx next lint",
     "test": "bash ./scripts/with-node20.sh npx vitest run",
     "test:watch": "bash ./scripts/with-node20.sh npx vitest",
     "prisma:generate": "bash ./scripts/with-node20.sh npx prisma generate",
+    "prisma:push": "bash ./scripts/with-node20.sh npx prisma db push",
     "prisma:migrate": "bash ./scripts/with-node20.sh npx prisma migrate dev",
+    "prisma:migrate:deploy": "bash ./scripts/with-node20.sh npx prisma migrate deploy",
     "prisma:seed": "bash ./scripts/with-node20.sh npx tsx prisma/seed.ts"
   },
   "dependencies": {

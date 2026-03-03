@@ -40,6 +40,39 @@ npm run prisma:seed
 npm run dev
 ```
 
+## Deploy On Vercel (Free Tier)
+
+This is the lowest-cost path to get the app online:
+
+- Hosting: Vercel Hobby ($0)
+- Database: Neon Postgres Free ($0)
+
+1. Push this repo to GitHub.
+2. Create a Neon project and copy the pooled `DATABASE_URL`.
+3. Initialize the Neon database from your machine:
+
+```bash
+DATABASE_URL="your_neon_database_url" npm run prisma:push
+DATABASE_URL="your_neon_database_url" npm run prisma:seed
+```
+
+4. In Vercel, import the GitHub repo.
+5. In Vercel project settings, add environment variables:
+
+- `DATABASE_URL` (required)
+- `OPENAI_API_KEY` (optional)
+- `OPENAI_MODEL` (optional, defaults to `gpt-4.1-mini`)
+- `INNGEST_EVENT_KEY` (optional)
+- `INNGEST_SIGNING_KEY` (optional)
+
+6. Deploy.
+
+Notes:
+
+- `INNGEST_*` vars are optional for first deploy; extraction falls back to inline processing if Inngest is not configured.
+- `OPENAI_API_KEY` is optional; company analysis route uses a fallback response when key is missing.
+- Build runs `prisma generate` automatically via the `build` script.
+
 ## API Endpoints
 
 - `POST /api/companies`
