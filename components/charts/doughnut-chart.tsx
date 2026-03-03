@@ -364,6 +364,12 @@ export function DoughnutChart({
     const ecologicalOvershootValues = ecological.map((d) =>
       Math.max(0, Math.min(100, d.negativeScore - d.positiveScore))
     );
+    const overshootPie = d3
+      .pie<{ value: number; overshoot: number }>()
+      .value((d) => d.value)
+      .sort(null)
+      .startAngle(degToRad(-90))
+      .endAngle(degToRad(270));
 
     const renderOvershoot = (values: number[], innerPct: number, outerPct: number) => {
       const data = values.map((v) => ({
@@ -371,13 +377,7 @@ export function DoughnutChart({
         overshoot: v
       }));
 
-      const arcs = pie(
-        data as Array<{
-          name: string;
-          value: number;
-          fill: string;
-        }>
-      ) as unknown as d3.PieArcDatum<{ value: number; overshoot: number }>[];
+      const arcs = overshootPie(data);
 
       const overshootArc = d3
         .arc<d3.PieArcDatum<{ value: number; overshoot: number }>>()

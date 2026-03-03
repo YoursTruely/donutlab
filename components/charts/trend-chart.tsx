@@ -76,7 +76,7 @@ export function TrendChart({ points }: { points: TrendPoint[] }) {
       .attr("transform", "rotate(-45)")
       .style("text-anchor", "end");
 
-    g.append("g").call(d3.axisLeft(yScale).domain([-100, 100]));
+    g.append("g").call(d3.axisLeft(yScale));
 
     let idx = 0;
     seriesMap.forEach((data, name) => {
